@@ -30,17 +30,25 @@ def register_employer(request):
 
 def user_login(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        # Already logged in — redirect by role
+        if request.user.role == 'employer':
+            return redirect('employer_dashboard')
+        return redirect('seeker_dashboard')
+
+    next_url = request.GET.get('next') or request.POST.get('next', '')
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
         messages.success(request, f"Welcome back, {user.username}!")
+        # Redirect to next URL if present and safe, else role-based dashboard
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         if user.is_seeker():
             return redirect('seeker_dashboard')
         else:
             return redirect('employer_dashboard')
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'accounts/login.html', {'form': form, 'next': next_url})
 
 
 def user_logout(request):

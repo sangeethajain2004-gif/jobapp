@@ -38,8 +38,16 @@ class JobPostForm(forms.ModelForm):
 
 def employer_required(view_func):
     def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.role != 'employer':
-            return redirect('login')
+        # Not logged in → redirect to login and come back after
+        if not request.user.is_authenticated:
+            messages.warning(request, "Please login as an Employer to access this page.")
+            from django.utils.http import urlencode
+            login_url = '/accounts/login/?' + urlencode({'next': request.path})
+            return redirect(login_url)
+        # Logged in but as a seeker → show error, redirect to seeker dashboard
+        if request.user.role != 'employer':
+            messages.error(request, "⚠️ This page is only for Employers. You are logged in as a Job Seeker.")
+            return redirect('seeker_dashboard')
         return view_func(request, *args, **kwargs)
     return wrapper
 
