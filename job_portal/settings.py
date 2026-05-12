@@ -13,6 +13,19 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+# CSRF trusted origins — required for Django 4+ when behind a proxy/HTTPS host
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-2b560.up.railway.app',
+    'https://*.up.railway.app',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+
+# Also allow any custom domain set via environment variable
+_extra_origin = os.environ.get('CSRF_TRUSTED_ORIGIN')
+if _extra_origin:
+    CSRF_TRUSTED_ORIGINS.append(_extra_origin)
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 INSTALLED_APPS = [
