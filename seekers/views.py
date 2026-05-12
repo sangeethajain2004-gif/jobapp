@@ -67,6 +67,31 @@ def seeker_profile(request):
     return render(request, 'seekers/profile.html', {'form': form, 'profile': profile})
 
 
+import requests
+from bs4 import BeautifulSoup
+import threading
+
+def scrape_interview_questions(skill):
+    """Scrape real interview questions from InterviewBit."""
+    url = f'https://www.interviewbit.com/{skill.lower().replace(" ", "-")}-interview-questions/'
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+    try:
+        response = requests.get(url, headers=headers, timeout=3)
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            questions = []
+            for h3 in soup.find_all('h3'):
+                text = h3.get_text(strip=True)
+                if text and '?' in text:
+                    # Clean up "1. What is..." -> "What is..."
+                    clean_text = text.split('. ', 1)[-1] if '. ' in text[:5] else text
+                    questions.append(clean_text)
+            return questions[:5]  # Return top 5
+    except Exception:
+        pass
+    return []
+
+
 @seeker_required
 def prep_material(request, app_id):
     from django.shortcuts import get_object_or_404
@@ -74,11 +99,17 @@ def prep_material(request, app_id):
     job = application.job
     skills = job.get_skills_list()
     
-    # Generate generic prep material based on skills
     questions = []
-    for skill in skills[:4]:
-        questions.append(f"Explain the core concepts of {skill} and how you have used it in past projects.")
-        questions.append(f"What are the most common challenges you face when working with {skill}, and how do you overcome them?")
+    
+    # Try to web scrape real questions for the top 2 skills
+    for skill in skills[:2]:
+        scraped = scrape_interview_questions(skill)
+        if scraped:
+            questions.extend(scraped)
+        else:
+            # Fallback to generic template
+            questions.append(f"Explain the core concepts of {skill} and how you have used it in past projects.")
+            questions.append(f"What are the most common challenges you face when working with {skill}, and how do you overcome them?")
     
     if not questions:
         questions = [
@@ -88,6 +119,12 @@ def prep_material(request, app_id):
             "Where do you see yourself in 5 years?"
         ]
         
+    # Remove exact duplicates while preserving order
+    unique_qs = []
+    for q in questions:
+        if q not in unique_qs:
+            unique_qs.append(q)
+            
     quiz = [
         {"q": f"Which of the following best describes your proficiency with {skills[0] if skills else 'the required tools'}?", "options": ["Beginner", "Intermediate", "Advanced", "Expert"]},
         {"q": "How do you handle tight deadlines?", "options": ["Prioritize tasks", "Ask for an extension", "Work overtime", "Delegate"]},
@@ -97,6 +134,6 @@ def prep_material(request, app_id):
     return render(request, 'seekers/prep_material.html', {
         'application': application,
         'job': job,
-        'questions': set(questions),  # Remove duplicates
+        'questions': unique_qs,
         'quiz': quiz
     })
