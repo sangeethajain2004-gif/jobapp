@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2.5rem;padding-bottom:3rem;">
+  <h1 class="page-title">Admin Dashboard</h1>
+  <p class="page-subtitle">Platform Statistics & Overview</p>
+
+  <div class="grid-4" style="margin-bottom:2.5rem;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">👥</div>
+      <h3 style="font-size:1.1rem;color:var(--text-secondary);">Total Seekers</h3>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary-light);">{{ total_seekers }}</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">🏢</div>
+      <h3 style="font-size:1.1rem;color:var(--text-secondary);">Total Employers</h3>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary-light);">{{ total_employers }}</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">💼</div>
+      <h3 style="font-size:1.1rem;color:var(--text-secondary);">Total Jobs</h3>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary-light);">{{ total_jobs }}</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+      <h3 style="font-size:1.1rem;color:var(--text-secondary);">Applications</h3>
+      <div style="font-size:2.5rem;font-weight:800;color:var(--primary-light);">{{ total_applications }}</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Recent Seekers -->
+    <div class="card">
+      <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem;">Recent Seekers</h2>
+      <ul style="list-style:none;padding:0;">
+        {% for user in recent_seekers %}
+        <li style="padding:0.75rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;">
+          <span>{{ user.username }} <small style="color:var(--text-muted);">({{ user.email }})</small></span>
+          <span class="badge badge-primary">{{ user.date_joined|date:"M d" }}</span>
+        </li>
+        {% empty %}
+        <li style="color:var(--text-muted);">No seekers registered yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Recent Employers -->
+    <div class="card">
+      <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem;">Recent Employers</h2>
+      <ul style="list-style:none;padding:0;">
+        {% for user in recent_employers %}
+        <li style="padding:0.75rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;">
+          <span>{{ user.username }} <small style="color:var(--text-muted);">({{ user.email }})</small></span>
+          <span class="badge badge-cyan">{{ user.date_joined|date:"M d" }}</span>
+        </li>
+        {% empty %}
+        <li style="color:var(--text-muted);">No employers registered yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Recent Jobs -->
+  <div class="card mt-3">
+    <h2 style="font-size:1.25rem;font-weight:700;margin-bottom:1rem;border-bottom:1px solid var(--border);padding-bottom:0.5rem;">Recent Jobs Posted</h2>
+    <ul style="list-style:none;padding:0;">
+      {% for job in recent_jobs %}
+      <li style="padding:0.75rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <strong style="display:block;">{{ job.title }}</strong>
+          <small style="color:var(--text-muted);">by {{ job.employer.username }}</small>
+        </div>
+        <a href="{% url 'job_detail' job.pk %}" class="btn btn-sm btn-outline">View Job</a>
+      </li>
+      {% empty %}
+      <li style="color:var(--text-muted);">No jobs posted yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<style>
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+</style>
+{% endblock %}

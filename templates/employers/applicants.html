@@ -21,7 +21,7 @@
     {% if enriched %}
       <div style="display:flex;flex-direction:column;gap:1rem;">
         {% for item in enriched %}
-        {% with item.app as app item.profile as profile item.score as score %}
+        {% with app=item.app profile=item.profile score=item.score %}
         <div class="card">
           <div style="display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap;">
             <!-- Avatar -->

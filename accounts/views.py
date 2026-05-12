@@ -55,3 +55,29 @@ def user_logout(request):
     logout(request)
     messages.info(request, "You've been logged out.")
     return redirect('home')
+
+
+from django.contrib.admin.views.decorators import staff_member_required
+from jobs.models import Job, Application
+from accounts.models import CustomUser
+
+@staff_member_required
+def admin_dashboard(request):
+    total_seekers = CustomUser.objects.filter(role='seeker').count()
+    total_employers = CustomUser.objects.filter(role='employer').count()
+    total_jobs = Job.objects.count()
+    total_applications = Application.objects.count()
+    
+    recent_employers = CustomUser.objects.filter(role='employer').order_by('-date_joined')[:5]
+    recent_seekers = CustomUser.objects.filter(role='seeker').order_by('-date_joined')[:5]
+    recent_jobs = Job.objects.order_by('-posted_at')[:5]
+
+    return render(request, 'accounts/admin_dashboard.html', {
+        'total_seekers': total_seekers,
+        'total_employers': total_employers,
+        'total_jobs': total_jobs,
+        'total_applications': total_applications,
+        'recent_employers': recent_employers,
+        'recent_seekers': recent_seekers,
+        'recent_jobs': recent_jobs,
+    })
