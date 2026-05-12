@@ -65,3 +65,38 @@ def seeker_profile(request):
         messages.success(request, "Profile updated successfully!")
         return redirect('seeker_dashboard')
     return render(request, 'seekers/profile.html', {'form': form, 'profile': profile})
+
+
+@seeker_required
+def prep_material(request, app_id):
+    from django.shortcuts import get_object_or_404
+    application = get_object_or_404(Application, pk=app_id, seeker=request.user)
+    job = application.job
+    skills = job.get_skills_list()
+    
+    # Generate generic prep material based on skills
+    questions = []
+    for skill in skills[:4]:
+        questions.append(f"Explain the core concepts of {skill} and how you have used it in past projects.")
+        questions.append(f"What are the most common challenges you face when working with {skill}, and how do you overcome them?")
+    
+    if not questions:
+        questions = [
+            "Tell me about yourself and your background.",
+            "Why are you interested in this position?",
+            "Can you describe a challenging project you worked on and how you handled it?",
+            "Where do you see yourself in 5 years?"
+        ]
+        
+    quiz = [
+        {"q": f"Which of the following best describes your proficiency with {skills[0] if skills else 'the required tools'}?", "options": ["Beginner", "Intermediate", "Advanced", "Expert"]},
+        {"q": "How do you handle tight deadlines?", "options": ["Prioritize tasks", "Ask for an extension", "Work overtime", "Delegate"]},
+        {"q": "Describe your ideal work environment.", "options": ["Fully remote", "Hybrid", "In-office", "Flexible"]},
+    ]
+
+    return render(request, 'seekers/prep_material.html', {
+        'application': application,
+        'job': job,
+        'questions': set(questions),  # Remove duplicates
+        'quiz': quiz
+    })

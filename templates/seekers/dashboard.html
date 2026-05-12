@@ -134,9 +134,11 @@
                 <td>{{ app.job.location }}</td>
                 <td>{{ app.applied_at|date:"d M Y" }}</td>
                 <td>
-                  {% if app.status == 'applied' %}<span class="badge badge-primary">Applied</span>
-                  {% elif app.status == 'shortlisted' %}<span class="badge badge-success">⭐ Shortlisted</span>
-                  {% else %}<span class="badge badge-danger">Rejected</span>{% endif %}
+                  {% if app.status == 'applied' %}<span class="badge badge-primary" style="margin-bottom:0.25rem;display:inline-block;">Applied</span>
+                  {% elif app.status == 'shortlisted' %}<span class="badge badge-success" style="margin-bottom:0.25rem;display:inline-block;">⭐ Shortlisted</span>
+                  {% else %}<span class="badge badge-danger" style="margin-bottom:0.25rem;display:inline-block;">Rejected</span>{% endif %}
+                  <br>
+                  <a href="{% url 'prep_material' app.pk %}" class="btn btn-outline btn-sm" style="font-size:0.7rem;padding:0.2rem 0.5rem;margin-top:0.25rem;">📚 Prep Material</a>
                 </td>
               </tr>
               {% endfor %}
