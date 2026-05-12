@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Employer Dashboard — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-user-name">{{ profile.company_name|default:user.username }}</div>
+      <div class="sidebar-user-role">Employer</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="{% url 'employer_dashboard' %}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'post_job' %}" class="sidebar-link"><span class="icon">➕</span> Post a Job</a>
+      <a href="{% url 'employer_profile' %}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
+      <a href="{% url 'job_list' %}" class="sidebar-link"><span class="icon">🔍</span> Browse All Jobs</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Account</div>
+      <a href="{% url 'logout' %}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <div class="flex-between" style="flex-wrap:wrap;gap:1rem;margin-bottom:0.5rem;">
+      <div>
+        <h1 class="page-title">Employer Dashboard</h1>
+        <p class="page-subtitle">Manage your job postings and applications.</p>
+      </div>
+      <a href="{% url 'post_job' %}" class="btn btn-primary">+ Post New Job</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon">💼</div>
+        <div class="stat-card-value">{{ jobs|length }}</div>
+        <div class="stat-card-label">Total Jobs Posted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">✅</div>
+        <div class="stat-card-value">{{ jobs|length }}</div>
+        <div class="stat-card-label">Active Jobs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">📨</div>
+        <div class="stat-card-value">{{ total_applications }}</div>
+        <div class="stat-card-label">Total Applications</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">⭐</div>
+        <div class="stat-card-value">{{ shortlisted }}</div>
+        <div class="stat-card-label">Shortlisted</div>
+      </div>
+    </div>
+
+    <!-- Company Profile Alert -->
+    {% if not profile.company_name %}
+    <div class="card mb-2" style="border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05);">
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <div style="font-size:1.5rem;">⚠️</div>
+        <div style="flex:1;">
+          <strong>Set up your company profile</strong>
+          <p style="color:var(--text-secondary);font-size:0.88rem;">A complete profile builds trust with candidates.</p>
+        </div>
+        <a href="{% url 'employer_profile' %}" class="btn btn-warning btn-sm">Setup Profile</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Posted Jobs -->
+    <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;">💼 Your Job Postings</h2>
+    {% if jobs %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Posted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for job in jobs %}
+            <tr>
+              <td style="font-weight:600;color:var(--text-primary);">{{ job.title }}</td>
+              <td><span class="badge badge-primary">{{ job.category }}</span></td>
+              <td>{{ job.location }}</td>
+              <td>{{ job.posted_at|date:"d M Y" }}</td>
+              <td>
+                {% if job.is_active %}
+                  <span class="badge badge-success">Active</span>
+                {% else %}
+                  <span class="badge badge-danger">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                  <a href="{% url 'job_applicants' job.pk %}" class="btn btn-sm btn-secondary">👥 Applicants</a>
+                  <a href="{% url 'edit_job' job.pk %}" class="btn btn-sm btn-outline">✏️ Edit</a>
+                  <form method="POST" action="{% url 'toggle_job' job.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if job.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                      {% if job.is_active %}⏸ Deactivate{% else %}▶ Activate{% endif %}
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <h3>No jobs posted yet</h3>
+        <p>Post your first job to start receiving applications.</p>
+        <a href="{% url 'post_job' %}" class="btn btn-primary mt-3">Post a Job</a>
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

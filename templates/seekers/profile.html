@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-user-name">{{ user.username }}</div>
+      <div class="sidebar-user-role">Job Seeker</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="{% url 'seeker_dashboard' %}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'job_list' %}" class="sidebar-link"><span class="icon">🔍</span> Browse Jobs</a>
+      <a href="{% url 'seeker_profile' %}" class="sidebar-link active"><span class="icon">👤</span> My Profile</a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Account</div>
+      <a href="{% url 'logout' %}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+    </div>
+  </aside>
+
+  <main class="dashboard-main">
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Keep your profile updated to get better job matches.</p>
+
+    {% if profile.resume %}
+    <div class="alert alert-success mb-2">📄 Resume uploaded: <a href="{{ profile.resume.url }}" target="_blank">Download</a></div>
+    {% endif %}
+
+    <div class="card form-card-wide" style="max-width:100%;">
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="grid-2">
+          {% for field in form %}
+          <div class="form-group {% if field.field.widget.attrs.rows %}full-width{% endif %}">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}{% for err in field.errors %}<div class="form-error">{{ err }}</div>{% endfor %}{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <style>.full-width { grid-column: 1 / -1; }</style>
+        <button type="submit" class="btn btn-primary mt-3" style="padding:0.85rem 2rem;">Save Profile</button>
+        <a href="{% url 'seeker_dashboard' %}" class="btn btn-secondary mt-3">Cancel</a>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

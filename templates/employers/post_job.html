@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{% if editing %}Edit Job{% else %}Post a Job{% endif %} — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="{% url 'employer_dashboard' %}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'post_job' %}" class="sidebar-link active"><span class="icon">➕</span> Post a Job</a>
+      <a href="{% url 'employer_profile' %}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
+    </div>
+    <a href="{% url 'logout' %}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+  </aside>
+
+  <main class="dashboard-main">
+    <h1 class="page-title">{% if editing %}Edit Job Posting{% else %}Post a New Job{% endif %}</h1>
+    <p class="page-subtitle">Fill in the details below to attract the best candidates.</p>
+
+    <div class="card form-card-wide" style="max-width:100%;">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}{% for err in field.errors %}<div class="form-error">{{ err }}</div>{% endfor %}{% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+          <button type="submit" class="btn btn-primary" style="padding:0.85rem 2rem;">
+            {% if editing %}Update Job{% else %}🚀 Post Job{% endif %}
+          </button>
+          <a href="{% url 'employer_dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Applicants for {{ job.title }} — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="{% url 'employer_dashboard' %}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'post_job' %}" class="sidebar-link"><span class="icon">➕</span> Post a Job</a>
+      <a href="{% url 'employer_profile' %}" class="sidebar-link"><span class="icon">🏢</span> Company Profile</a>
+    </div>
+    <a href="{% url 'logout' %}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+  </aside>
+
+  <main class="dashboard-main">
+    <a href="{% url 'employer_dashboard' %}" style="color:var(--text-muted);font-size:0.9rem;">← Back to Dashboard</a>
+    <h1 class="page-title mt-2">Applicants for "{{ job.title }}"</h1>
+    <p class="page-subtitle">{{ enriched|length }} candidate{{ enriched|length|pluralize }} applied — ranked by skill match.</p>
+
+    {% if enriched %}
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        {% for item in enriched %}
+        {% with item.app as app item.profile as profile item.score as score %}
+        <div class="card">
+          <div style="display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap;">
+            <!-- Avatar -->
+            <div class="avatar-lg" style="background:linear-gradient(135deg, hsl({{ forloop.counter0|add:200 }},70%,50%), hsl({{ forloop.counter0|add:260 }},70%,60%));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1.4rem;">
+              {{ app.seeker.username|first|upper }}
+            </div>
+
+            <!-- Info -->
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+                <div>
+                  <h3 style="font-size:1rem;font-weight:700;">{{ profile.full_name|default:app.seeker.username }}</h3>
+                  <p style="color:var(--text-muted);font-size:0.85rem;">{{ app.seeker.email }}</p>
+                </div>
+                <div>
+                  {% if app.status == 'applied' %}<span class="badge badge-primary">Applied</span>
+                  {% elif app.status == 'shortlisted' %}<span class="badge badge-success">⭐ Shortlisted</span>
+                  {% else %}<span class="badge badge-danger">Rejected</span>{% endif %}
+                </div>
+              </div>
+
+              {% if profile %}
+              <div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-bottom:0.75rem;">
+                {% if profile.location %}<span class="meta-tag">📍 {{ profile.location }}</span>{% endif %}
+                {% if profile.experience_years %}<span class="meta-tag">💼 {{ profile.experience_years }} yr{{ profile.experience_years|pluralize }} exp</span>{% endif %}
+                {% if profile.education %}<span class="meta-tag">🎓 {{ profile.education|truncatechars:40 }}</span>{% endif %}
+              </div>
+
+              {% if profile.skills %}
+              <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.75rem;">
+                {% for skill in profile.get_skills_list|slice:":8" %}
+                  <span class="skill-chip">{{ skill }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <!-- Skill Match -->
+              <div class="match-bar-container" style="max-width:280px;margin-bottom:0.75rem;">
+                <div class="match-bar-label">
+                  <span style="font-size:0.78rem;">Skill Match</span>
+                  <span style="color:var(--primary-light);font-weight:700;font-size:0.85rem;">{{ score }}%</span>
+                </div>
+                <div class="match-bar"><div class="match-bar-fill" style="width:{{ score }}%;"></div></div>
+              </div>
+              {% endif %}
+
+              {% if app.cover_note %}
+              <div style="background:var(--bg-elevated);border-radius:var(--radius-sm);padding:0.75rem;font-size:0.88rem;color:var(--text-secondary);margin-bottom:0.75rem;">
+                <strong style="color:var(--text-secondary);">Cover note:</strong> {{ app.cover_note }}
+              </div>
+              {% endif %}
+
+              <!-- Actions -->
+              <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
+                {% if profile and profile.resume %}
+                  <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-outline btn-sm">📄 Download Resume</a>
+                {% endif %}
+                <form method="POST" action="{% url 'update_application_status' app.pk %}" style="display:flex;gap:0.5rem;align-items:center;">
+                  {% csrf_token %}
+                  <select name="status" class="form-input" style="padding:0.4rem 0.75rem;font-size:0.82rem;width:auto;">
+                    <option value="applied" {% if app.status == 'applied' %}selected{% endif %}>Applied</option>
+                    <option value="shortlisted" {% if app.status == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                    <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                  </select>
+                  <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <h3>No applications yet</h3>
+        <p>Share this job to attract candidates.</p>
+      </div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

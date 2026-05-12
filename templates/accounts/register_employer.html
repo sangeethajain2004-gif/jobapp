@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Register as Employer — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="form-card">
+    <div class="auth-header">
+      <div style="font-size:2.5rem;margin-bottom:0.75rem;">🏢</div>
+      <h1>Create Employer Account</h1>
+      <p>Start hiring the best talent today</p>
+    </div>
+
+    <form method="POST" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          {% for error in field.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary w-full mt-2" style="justify-content:center;padding:0.85rem;">Create Employer Account →</button>
+    </form>
+
+    <div class="auth-divider"><span>Already have an account?</span></div>
+    <a href="{% url 'login' %}" class="btn btn-secondary w-full" style="justify-content:center;">Login</a>
+
+    <p class="text-center mt-2" style="font-size:0.85rem;color:var(--text-muted);">
+      Looking for a job? <a href="{% url 'register_seeker' %}">Register as Job Seeker</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

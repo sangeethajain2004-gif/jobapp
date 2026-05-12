@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}SmartJobs — Find Your Dream Job{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🚀 AI-Powered Job Matching</div>
+    <h1>Find Your <span class="highlight">Dream Job</span><br>The Smart Way</h1>
+    <p>Connect with top employers through intelligent skill matching. Upload your resume, set your skills, and let us do the rest.</p>
+
+    <!-- Search -->
+    <form method="GET" action="{% url 'job_list' %}">
+      <div class="search-bar">
+        <input type="text" name="q" placeholder="🔍 Job title or skill..." />
+        <input type="text" name="location" placeholder="📍 Location..." />
+        <button type="submit" class="btn btn-primary">Search Jobs</button>
+      </div>
+    </form>
+
+    <div class="hero-cta">
+      <a href="{% url 'register_seeker' %}" class="btn btn-primary btn-lg">👤 I'm a Job Seeker</a>
+      <a href="{% url 'register_employer' %}" class="btn btn-outline btn-lg">🏢 I'm an Employer</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-number">{{ total_jobs }}+</div>
+        <div class="stat-label">Active Jobs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ total_seekers }}+</div>
+        <div class="stat-label">Job Seekers</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{ total_employers }}+</div>
+        <div class="stat-label">Companies</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">∞</div>
+        <div class="stat-label">Opportunities</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="page-section" style="background: var(--bg-card); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <h2>Why Choose <span class="text-gradient">SmartJobs?</span></h2>
+      <div class="section-divider"></div>
+      <p class="mt-2">Everything you need to land your next role or hire the best talent.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">🤖</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">Smart Skill Matching</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">Our algorithm analyses your skills and matches you with the most relevant jobs — giving you a match score for each opportunity.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">📄</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">Resume Upload</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">Upload your PDF resume directly. Employers can download and review your full profile in seconds.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">⚡</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">One-Click Apply</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">Apply to jobs instantly with your saved profile. Track your application status in real-time.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">🏢</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">Employer Dashboard</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">Post jobs, view applicants ranked by skill match, and manage your hiring pipeline efficiently.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">🔔</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">Application Tracking</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">Know exactly where you stand — Applied, Shortlisted, or Rejected — all in one clear dashboard.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:2rem;margin-bottom:1rem;">🌐</div>
+        <h3 style="font-weight:700;margin-bottom:0.5rem;">Multiple Categories</h3>
+        <p style="color:var(--text-secondary);font-size:0.9rem;">IT, Finance, Design, Healthcare, Engineering and more — find opportunities across all industries.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Jobs -->
+{% if recent_jobs %}
+<section class="page-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>Latest <span class="text-gradient">Opportunities</span></h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="grid-3">
+      {% for job in recent_jobs %}
+      <a href="{% url 'job_detail' job.pk %}" style="text-decoration:none;">
+        <div class="job-card">
+          <div class="job-card-header">
+            <div>
+              <div class="job-card-title">{{ job.title }}</div>
+              <div class="job-card-company">🏢 {{ job.employer.username }}</div>
+            </div>
+            <div class="company-avatar">{{ job.title|first|upper }}</div>
+          </div>
+          <div class="job-card-meta">
+            <span class="meta-tag">📍 {{ job.location }}</span>
+            <span class="meta-tag">⏰ {{ job.job_type }}</span>
+            {% if job.salary_range %}<span class="meta-tag">💰 {{ job.salary_range }}</span>{% endif %}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            {% for skill in job.get_skills_list|slice:":4" %}
+              <span class="skill-chip">{{ skill }}</span>
+            {% endfor %}
+          </div>
+          <div class="flex-between">
+            <span class="badge badge-primary">{{ job.category }}</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);">{{ job.posted_at|timesince }} ago</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{% url 'job_list' %}" class="btn btn-outline btn-lg">View All Jobs →</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="page-section" style="background: var(--bg-card); border-top: 1px solid var(--border);">
+  <div class="container text-center">
+    <h2 style="font-size:2rem;font-weight:800;margin-bottom:1rem;">Ready to Get Started?</h2>
+    <p style="color:var(--text-secondary);margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;">Join thousands of job seekers and employers on SmartJobs today. It's completely free.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'register_seeker' %}" class="btn btn-primary btn-lg">Start Job Hunting</a>
+      <a href="{% url 'register_employer' %}" class="btn btn-secondary btn-lg">Post a Job</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

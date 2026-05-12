@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Company Profile — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Navigation</div>
+      <a href="{% url 'employer_dashboard' %}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'post_job' %}" class="sidebar-link"><span class="icon">➕</span> Post a Job</a>
+      <a href="{% url 'employer_profile' %}" class="sidebar-link active"><span class="icon">🏢</span> Company Profile</a>
+    </div>
+    <a href="{% url 'logout' %}" class="sidebar-link"><span class="icon">🚪</span> Logout</a>
+  </aside>
+
+  <main class="dashboard-main">
+    <h1 class="page-title">Company Profile</h1>
+    <p class="page-subtitle">Help candidates learn more about your company.</p>
+
+    <div class="card form-card-wide" style="max-width:100%;">
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="grid-2">
+          {% for field in form %}
+          <div class="form-group {% if field.name == 'description' %}full-width{% endif %}">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="form-help">{{ field.help_text }}</div>{% endif %}
+            {% if field.errors %}{% for err in field.errors %}<div class="form-error">{{ err }}</div>{% endfor %}{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <style>.full-width { grid-column: 1 / -1; }</style>
+        <button type="submit" class="btn btn-primary mt-3" style="padding:0.85rem 2rem;">Save Company Profile</button>
+        <a href="{% url 'employer_dashboard' %}" class="btn btn-secondary mt-3">Cancel</a>
+      </form>
+    </div>
+  </main>
+</div>
+{% endblock %}

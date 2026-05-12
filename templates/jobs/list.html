@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Browse Jobs — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2.5rem;padding-bottom:3rem;">
+  <!-- Page header -->
+  <div class="flex-between mb-2" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1 class="page-title">Browse Jobs</h1>
+      <p class="page-subtitle">{{ jobs|length }} job{{ jobs|length|pluralize }} found</p>
+    </div>
+    {% if user.is_authenticated and user.role == 'employer' %}
+      <a href="{% url 'post_job' %}" class="btn btn-primary">+ Post a Job</a>
+    {% endif %}
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" style="margin-bottom:2rem;">
+    <div class="search-bar" style="max-width:100%;border-radius:var(--radius);">
+      <input type="text" name="q" value="{{ query }}" placeholder="🔍 Job title, skill, or keyword..." class="form-input" />
+      <input type="text" name="location" value="{{ location }}" placeholder="📍 Location" class="form-input" />
+      <select name="category" class="form-input">
+        <option value="">All Categories</option>
+        {% for val, label in categories %}
+          <option value="{{ val }}" {% if category == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select name="job_type" class="form-input">
+        <option value="">All Types</option>
+        {% for val, label in job_types %}
+          <option value="{{ val }}" {% if job_type == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Search</button>
+      {% if query or location or category or job_type %}
+        <a href="{% url 'job_list' %}" class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Results -->
+  {% if jobs %}
+    <div class="grid-3">
+      {% for job in jobs %}
+      <a href="{% url 'job_detail' job.pk %}" style="text-decoration:none;">
+        <div class="job-card">
+          <div class="job-card-header">
+            <div style="flex:1;">
+              <div class="job-card-title">{{ job.title }}</div>
+              <div class="job-card-company">🏢 {{ job.employer.username }}</div>
+            </div>
+            <div class="company-avatar">{{ job.title|first|upper }}</div>
+          </div>
+
+          <p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.5;">
+            {{ job.description|truncatewords:18 }}
+          </p>
+
+          <div class="job-card-meta">
+            <span class="meta-tag">📍 {{ job.location }}</span>
+            <span class="meta-tag">⏰ {{ job.job_type }}</span>
+            {% if job.salary_range %}<span class="meta-tag">💰 {{ job.salary_range }}</span>{% endif %}
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            {% for skill in job.get_skills_list|slice:":5" %}
+              <span class="skill-chip">{{ skill }}</span>
+            {% endfor %}
+          </div>
+
+          <div class="flex-between">
+            <span class="badge badge-primary">{{ job.category }}</span>
+            <span style="font-size:0.78rem;color:var(--text-muted);">{{ job.posted_at|timesince }} ago</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-state-icon">🔍</div>
+      <h3>No jobs found</h3>
+      <p>Try different keywords or clear the filters.</p>
+      <a href="{% url 'job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

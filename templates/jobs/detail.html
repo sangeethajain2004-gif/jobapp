@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ job.title }} — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top:2.5rem;padding-bottom:3rem;max-width:860px;">
+  <a href="{% url 'job_list' %}" style="color:var(--text-muted);font-size:0.9rem;">← Back to Jobs</a>
+
+  <div class="card mt-3">
+    <!-- Header -->
+    <div style="display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;">
+      <div class="company-avatar" style="width:64px;height:64px;font-size:1.6rem;border-radius:16px;">
+        {{ job.title|first|upper }}
+      </div>
+      <div style="flex:1;">
+        <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:0.3rem;">{{ job.title }}</h1>
+        <p style="color:var(--text-secondary);font-size:1rem;">🏢 {{ job.employer.username }}</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:0.75rem;">
+          <span class="badge badge-primary">{{ job.category }}</span>
+          <span class="badge badge-cyan">{{ job.job_type }}</span>
+          {% if job.salary_range %}<span class="badge badge-success">💰 {{ job.salary_range }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;padding:1rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:1.5rem;">
+      <span class="meta-tag">📍 {{ job.location }}</span>
+      <span class="meta-tag">📅 Posted {{ job.posted_at|timesince }} ago</span>
+    </div>
+
+    <!-- Description -->
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">Job Description</h2>
+    <div style="color:var(--text-secondary);line-height:1.8;white-space:pre-wrap;margin-bottom:1.5rem;">{{ job.description }}</div>
+
+    <!-- Skills -->
+    <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">Required Skills</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:2rem;">
+      {% for skill in skills_list %}
+        <span class="skill-chip" style="font-size:0.85rem;padding:0.4rem 1rem;">{{ skill }}</span>
+      {% endfor %}
+    </div>
+
+    <!-- Apply -->
+    {% if user.is_authenticated and user.role == 'seeker' %}
+      {% if already_applied %}
+        <div class="alert alert-info">✅ You've already applied for this job. Check your dashboard for status.</div>
+      {% else %}
+        <form method="POST" action="{% url 'apply_job' job.pk %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label class="form-label">Cover Note (optional)</label>
+            <textarea name="cover_note" class="form-input" rows="3" placeholder="Briefly introduce yourself and why you're a great fit..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg w-full" style="justify-content:center;">
+            🚀 Apply Now
+          </button>
+        </form>
+      {% endif %}
+    {% elif not user.is_authenticated %}
+      <div style="text-align:center;padding:1.5rem;background:var(--bg-elevated);border-radius:var(--radius);border:1px solid var(--border);">
+        <p style="color:var(--text-secondary);margin-bottom:1rem;">Login as a job seeker to apply for this position.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;">
+          <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+          <a href="{% url 'register_seeker' %}" class="btn btn-secondary">Register Free</a>
+        </div>
+      </div>
+    {% elif user.role == 'employer' %}
+      <div class="alert alert-info">ℹ️ Employers cannot apply for jobs. <a href="{% url 'employer_dashboard' %}">Go to your dashboard →</a></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

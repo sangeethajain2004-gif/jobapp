@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Job Portal — Connect top talent with leading companies through intelligent skill matching.">
+  <title>{% block title %}Smart Job Portal{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💼</text></svg>">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="{% url 'home' %}" class="nav-brand">
+      <div class="brand-icon">💼</div>
+      SmartJobs
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="{% url 'job_list' %}">Browse Jobs</a></li>
+      {% if user.is_authenticated %}
+        {% if user.role == 'seeker' %}
+          <li><a href="{% url 'seeker_dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'seeker_profile' %}">My Profile</a></li>
+        {% elif user.role == 'employer' %}
+          <li><a href="{% url 'employer_dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'post_job' %}">Post a Job</a></li>
+        {% endif %}
+        <li><a href="{% url 'logout' %}" class="btn btn-secondary btn-sm">Logout</a></li>
+      {% else %}
+        <li><a href="{% url 'login' %}">Login</a></li>
+        <li><a href="{% url 'register_seeker' %}" class="btn btn-primary btn-sm">Get Started</a></li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+
+<!-- Flash Messages -->
+{% if messages %}
+<div class="messages-container">
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+      {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+      {{ message }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Content -->
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="nav-brand" style="font-size:1.1rem;">
+      <div class="brand-icon" style="width:28px;height:28px;font-size:0.85rem;">💼</div>
+      SmartJobs
+    </div>
+    <p class="footer-copy">© 2025 Smart Job Portal System. Built with Django &amp; ❤️</p>
+    <div style="display:flex;gap:1rem;">
+      <a href="{% url 'job_list' %}" style="color:var(--text-muted);font-size:0.85rem;">Browse Jobs</a>
+      <a href="{% url 'register_seeker' %}" style="color:var(--text-muted);font-size:0.85rem;">For Seekers</a>
+      <a href="{% url 'register_employer' %}" style="color:var(--text-muted);font-size:0.85rem;">For Employers</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
