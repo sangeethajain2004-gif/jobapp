@@ -3,11 +3,12 @@
 
 {% block content %}
 <div class="container" style="padding-top:2.5rem;padding-bottom:3rem;">
+
   <!-- Page header -->
   <div class="flex-between mb-2" style="flex-wrap:wrap;gap:1rem;">
     <div>
       <h1 class="page-title">Browse Jobs</h1>
-      <p class="page-subtitle">{{ jobs|length }} job{{ jobs|length|pluralize }} found</p>
+      <p class="page-subtitle">{{ total_count }} job{{ total_count|pluralize }} found — including live listings from the web</p>
     </div>
     {% if user.is_authenticated and user.role == 'employer' %}
       <a href="{% url 'post_job' %}" class="btn btn-primary">+ Post a Job</a>
@@ -38,8 +39,13 @@
     </div>
   </form>
 
-  <!-- Results -->
+  <!-- ===== LOCAL JOBS (posted by employers on this platform) ===== -->
   {% if jobs %}
+  <div style="margin-bottom:2.5rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;">
+      <h2 style="font-size:1.1rem;font-weight:700;">📋 Jobs on SmartJobs</h2>
+      <span class="badge badge-primary">{{ jobs|length }} listing{{ jobs|length|pluralize }}</span>
+    </div>
     <div class="grid-3">
       {% for job in jobs %}
       <a href="{% url 'job_detail' job.pk %}" style="text-decoration:none;">
@@ -51,23 +57,17 @@
             </div>
             <div class="company-avatar">{{ job.title|first|upper }}</div>
           </div>
-
-          <p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.5;">
-            {{ job.description|truncatewords:18 }}
-          </p>
-
+          <p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.5;">{{ job.description|truncatewords:15 }}</p>
           <div class="job-card-meta">
             <span class="meta-tag">📍 {{ job.location }}</span>
             <span class="meta-tag">⏰ {{ job.job_type }}</span>
             {% if job.salary_range %}<span class="meta-tag">💰 {{ job.salary_range }}</span>{% endif %}
           </div>
-
           <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
             {% for skill in job.get_skills_list|slice:":5" %}
               <span class="skill-chip">{{ skill }}</span>
             {% endfor %}
           </div>
-
           <div class="flex-between">
             <span class="badge badge-primary">{{ job.category }}</span>
             <span style="font-size:0.78rem;color:var(--text-muted);">{{ job.posted_at|timesince }} ago</span>
@@ -76,13 +76,84 @@
       </a>
       {% endfor %}
     </div>
-  {% else %}
-    <div class="empty-state">
-      <div class="empty-state-icon">🔍</div>
-      <h3>No jobs found</h3>
-      <p>Try different keywords or clear the filters.</p>
-      <a href="{% url 'job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
-    </div>
+  </div>
   {% endif %}
+
+  <!-- ===== EXTERNAL JOBS (fetched live from internet) ===== -->
+  {% if external_jobs %}
+  <div>
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <h2 style="font-size:1.1rem;font-weight:700;">🌐 Live Jobs from the Web</h2>
+      <span class="badge badge-cyan">{{ external_jobs|length }} live listing{{ external_jobs|length|pluralize }}</span>
+      <span style="font-size:0.78rem;color:var(--text-muted);">Fetched in real-time from Remotive &amp; Arbeitnow</span>
+    </div>
+
+    <div class="grid-3">
+      {% for job in external_jobs %}
+      <div class="job-card" style="position:relative;">
+        <!-- Live badge -->
+        <div style="position:absolute;top:0.75rem;right:0.75rem;">
+          <span class="badge badge-cyan" style="font-size:0.68rem;">🌐 {{ job.source }}</span>
+        </div>
+
+        <div class="job-card-header" style="padding-right:5rem;">
+          <div style="flex:1;">
+            <div class="job-card-title">{{ job.title }}</div>
+            <div class="job-card-company">
+              {% if job.logo %}
+                <img src="{{ job.logo }}" alt="{{ job.company }}" style="height:16px;vertical-align:middle;margin-right:4px;border-radius:3px;">
+              {% endif %}
+              🏢 {{ job.company }}
+            </div>
+          </div>
+          <div class="company-avatar" style="background:linear-gradient(135deg,#06b6d4,#6366f1);">
+            {{ job.company|first|upper }}
+          </div>
+        </div>
+
+        {% if job.description %}
+        <p style="color:var(--text-secondary);font-size:0.88rem;line-height:1.5;">
+          {{ job.description|truncatewords:18 }}...
+        </p>
+        {% endif %}
+
+        <div class="job-card-meta">
+          <span class="meta-tag">📍 {{ job.location }}</span>
+          <span class="meta-tag">⏰ {{ job.job_type }}</span>
+          {% if job.salary %}<span class="meta-tag">💰 {{ job.salary }}</span>{% endif %}
+        </div>
+
+        {% if job.skills %}
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+          {% for skill in job.skills|slice:":5" %}
+            <span class="skill-chip">{{ skill }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="flex-between" style="margin-top:auto;padding-top:0.5rem;">
+          <span class="badge badge-primary">{{ job.category }}</span>
+          <a href="{{ job.url }}" target="_blank" rel="noopener noreferrer"
+             class="btn btn-primary btn-sm"
+             onclick="event.stopPropagation();">
+            Apply →
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Empty state -->
+  {% if not jobs and not external_jobs %}
+  <div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <h3>No jobs found</h3>
+    <p>Try different keywords or clear the filters.</p>
+    <a href="{% url 'job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

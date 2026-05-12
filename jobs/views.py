@@ -3,46 +3,65 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from .models import Job, Application
+from .external_jobs import get_external_jobs
 from accounts.models import CustomUser
 
 
 def home(request):
-    recent_jobs = Job.objects.filter(is_active=True)[:6]
+    # Show a mix of local jobs + external jobs on homepage
+    local_jobs = list(Job.objects.filter(is_active=True)[:4])
+    external = get_external_jobs(limit=6) if len(local_jobs) < 6 else []
+    recent_jobs = local_jobs + external
     total_jobs = Job.objects.filter(is_active=True).count()
     total_seekers = CustomUser.objects.filter(role='seeker').count()
     total_employers = CustomUser.objects.filter(role='employer').count()
     return render(request, 'home.html', {
         'recent_jobs': recent_jobs,
-        'total_jobs': total_jobs,
+        'total_jobs': total_jobs + 5000,   # Add external count estimate
         'total_seekers': total_seekers,
         'total_employers': total_employers,
     })
 
 
 def job_list(request):
-    jobs = Job.objects.filter(is_active=True)
     query = request.GET.get('q', '')
     location = request.GET.get('location', '')
     category = request.GET.get('category', '')
     job_type = request.GET.get('job_type', '')
 
+    # --- Local jobs from our DB ---
+    local_jobs = Job.objects.filter(is_active=True)
     if query:
-        jobs = jobs.filter(Q(title__icontains=query) | Q(required_skills__icontains=query) | Q(description__icontains=query))
+        local_jobs = local_jobs.filter(
+            Q(title__icontains=query) | Q(required_skills__icontains=query) | Q(description__icontains=query)
+        )
     if location:
-        jobs = jobs.filter(location__icontains=location)
+        local_jobs = local_jobs.filter(location__icontains=location)
     if category:
-        jobs = jobs.filter(category=category)
+        local_jobs = local_jobs.filter(category=category)
     if job_type:
-        jobs = jobs.filter(job_type=job_type)
+        local_jobs = local_jobs.filter(job_type=job_type)
+
+    # --- External jobs from APIs ---
+    search_term = query or location or category or 'developer'
+    external_jobs = get_external_jobs(search=search_term, limit=24)
+
+    # Filter external by location/type if specified
+    if location:
+        external_jobs = [j for j in external_jobs if location.lower() in j['location'].lower()]
+    if job_type:
+        external_jobs = [j for j in external_jobs if job_type.lower() in j['job_type'].lower()]
 
     return render(request, 'jobs/list.html', {
-        'jobs': jobs,
+        'jobs': local_jobs,
+        'external_jobs': external_jobs,
         'query': query,
         'location': location,
         'category': category,
         'job_type': job_type,
         'categories': Job.CATEGORY_CHOICES,
         'job_types': Job.JOB_TYPE_CHOICES,
+        'total_count': local_jobs.count() + len(external_jobs),
     })
 
 

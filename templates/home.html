@@ -98,6 +98,35 @@
     </div>
     <div class="grid-3">
       {% for job in recent_jobs %}
+      {% if job.is_external %}
+      <!-- External job (dict from API) -->
+      <a href="{{ job.url }}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+        <div class="job-card" style="position:relative;">
+          <div style="position:absolute;top:0.75rem;right:0.75rem;">
+            <span class="badge badge-cyan" style="font-size:0.68rem;">🌐 Live</span>
+          </div>
+          <div class="job-card-header" style="padding-right:4rem;">
+            <div>
+              <div class="job-card-title">{{ job.title }}</div>
+              <div class="job-card-company">🏢 {{ job.company }}</div>
+            </div>
+            <div class="company-avatar" style="background:linear-gradient(135deg,#06b6d4,#6366f1);">{{ job.company|first|upper }}</div>
+          </div>
+          <div class="job-card-meta">
+            <span class="meta-tag">📍 {{ job.location }}</span>
+            <span class="meta-tag">⏰ {{ job.job_type }}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            {% for skill in job.skills|slice:":4" %}<span class="skill-chip">{{ skill }}</span>{% endfor %}
+          </div>
+          <div class="flex-between">
+            <span class="badge badge-primary">{{ job.category }}</span>
+            <span class="badge badge-cyan" style="font-size:0.7rem;">{{ job.source }}</span>
+          </div>
+        </div>
+      </a>
+      {% else %}
+      <!-- Local job (Django model object) -->
       <a href="{% url 'job_detail' job.pk %}" style="text-decoration:none;">
         <div class="job-card">
           <div class="job-card-header">
@@ -123,6 +152,7 @@
           </div>
         </div>
       </a>
+      {% endif %}
       {% endfor %}
     </div>
     <div class="text-center mt-4">
