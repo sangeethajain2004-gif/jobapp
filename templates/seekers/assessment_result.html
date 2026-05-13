@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Assessment Result — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:700px;padding-top:2.5rem;padding-bottom:3rem;">
+  <a href="{% url 'prep_material' app_id %}" style="color:var(--text-muted);font-size:0.9rem;">← Back to Prep Material</a>
+
+  <div class="card mt-3" style="text-align:center;padding:2.5rem 2rem;">
+    <!-- Emoji + Score -->
+    <div style="font-size:4rem;margin-bottom:1rem;">
+      {% if assessment.percentage >= 71 %}🚀{% elif assessment.percentage >= 41 %}👍{% else %}📖{% endif %}
+    </div>
+    {% with band=assessment.band %}
+    <h1 style="font-size:1.8rem;font-weight:800;margin-bottom:0.5rem;">{{ band.0 }}</h1>
+    {% endwith %}
+    <p style="color:var(--text-muted);margin-bottom:2rem;">
+      You scored
+      <strong style="color:var(--primary-light);font-size:1.5rem;">{{ assessment.score }}/{{ assessment.total }}</strong>
+      ({{ assessment.percentage }}%) for <strong>{{ job.title }}</strong>
+    </p>
+
+    <!-- Progress bar -->
+    <div style="background:var(--bg-elevated);border-radius:999px;height:14px;width:100%;margin-bottom:2rem;overflow:hidden;">
+      <div style="height:100%;border-radius:999px;
+        width:{{ assessment.percentage }}%;
+        background:{% if assessment.percentage >= 71 %}#22c55e{% elif assessment.percentage >= 41 %}var(--primary){% else %}#f59e0b{% endif %};
+        transition:width 1.2s ease;"></div>
+    </div>
+
+    <!-- Feedback band -->
+    {% if assessment.percentage >= 71 %}
+    <div class="alert alert-success" style="text-align:left;margin-bottom:1.5rem;">
+      🎉 Excellent! You are well prepared. Research the company, review your cover note, and arrive on time!
+    </div>
+    {% elif assessment.percentage >= 41 %}
+    <div class="alert alert-info" style="text-align:left;margin-bottom:1.5rem;">
+      💪 Good effort! Study the questions you got wrong below and retake the quiz to push your score up.
+    </div>
+    {% else %}
+    <div class="alert alert-warning" style="text-align:left;margin-bottom:1.5rem;">
+      📚 Keep practising! Use the Study Resources on the Prep Material page and retake the quiz anytime.
+    </div>
+    {% endif %}
+
+    <!-- Answer breakdown — uses pre-processed results list, no custom filters needed -->
+    <div style="text-align:left;margin-bottom:2rem;">
+      <h2 style="font-size:1rem;font-weight:700;margin-bottom:1rem;">Answer Breakdown</h2>
+      {% for r in results %}
+      <div style="background:var(--bg-dark);padding:1rem;border-radius:var(--radius-sm);margin-bottom:0.75rem;
+                  border:1px solid {% if r.is_correct %}#22c55e40{% else %}#ef444440{% endif %};">
+        <p style="font-weight:600;margin-bottom:0.75rem;font-size:0.9rem;">
+          {% if r.is_correct %}✅{% else %}❌{% endif %} {{ forloop.counter }}. {{ r.q }}
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;">
+          {% for opt in r.options %}
+          <span style="padding:0.3rem 0.75rem;border-radius:999px;font-size:0.82rem;border:1px solid;
+            {% if opt == r.correct and opt == r.selected %}
+              background:#22c55e20;border-color:#22c55e;color:#22c55e;
+            {% elif opt == r.correct %}
+              background:#8b5cf620;border-color:#8b5cf6;color:#8b5cf6;
+            {% elif opt == r.selected %}
+              background:#ef444420;border-color:#ef4444;color:#ef4444;
+            {% else %}
+              background:var(--bg-elevated);border-color:var(--border);color:var(--text-muted);
+            {% endif %}">
+            {% if opt == r.correct %}✓ {% endif %}{{ opt }}
+          </span>
+          {% endfor %}
+        </div>
+        {% if not r.is_correct %}
+        <p style="font-size:0.78rem;color:#8b5cf6;margin-top:0.5rem;">
+          ✅ Correct answer: <strong>{{ r.correct }}</strong>
+        </p>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'prep_material' app_id %}" class="btn btn-primary">🔄 Retake Quiz</a>
+      <a href="{% url 'seeker_dashboard' %}" class="btn btn-secondary">← Dashboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

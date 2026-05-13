@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}About Us — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:800px;padding:3rem 0;">
+  <div style="text-align:center;margin-bottom:3rem;">
+    <h1 style="font-size:2.5rem;font-weight:800;color:var(--text-primary);margin-bottom:1rem;">About <span style="color:var(--primary-light);">SmartJobs</span></h1>
+    <p style="color:var(--text-secondary);font-size:1.1rem;line-height:1.6;max-width:600px;margin:0 auto;">
+      We are revolutionizing the hiring process by bridging the gap between top talent and innovative companies through intelligent matching and live skill assessment.
+    </p>
+  </div>
+
+  <div class="grid-2" style="gap:2rem;">
+    <div class="card" style="padding:2rem;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🎯</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;">Our Mission</h3>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">
+        To create a frictionless, transparent, and fair hiring ecosystem where candidates are evaluated on their true skills, and employers can find the perfect fit faster than ever before.
+      </p>
+    </div>
+
+    <div class="card" style="padding:2rem;">
+      <div style="font-size:2.5rem;margin-bottom:1rem;">🤖</div>
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;">Smart & Fast</h3>
+      <p style="color:var(--text-muted);font-size:0.95rem;line-height:1.6;">
+        Leveraging advanced matching algorithms and real-time interview preparation modules, we empower candidates to succeed while saving employers countless hours of screening.
+      </p>
+    </div>
+  </div>
+
+  <div class="card mt-3" style="padding:3rem 2rem;text-align:center;background:linear-gradient(135deg, var(--bg-dark), rgba(139,92,246,0.1));">
+    <h2 style="font-size:1.8rem;font-weight:800;margin-bottom:1rem;">Join the Future of Hiring</h2>
+    <p style="color:var(--text-secondary);margin-bottom:2rem;max-width:500px;margin-left:auto;margin-right:auto;">
+      Whether you're looking for your dream job or searching for the next rockstar to join your team, SmartJobs is here to help.
+    </p>
+    <div style="display:flex;gap:1rem;justify-content:center;">
+      <a href="{% url 'job_list' %}" class="btn btn-primary">Find a Job</a>
+      <a href="{% url 'post_job' %}" class="btn btn-outline">Post a Job</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

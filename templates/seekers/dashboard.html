@@ -27,6 +27,41 @@
     <h1 class="page-title">Welcome back, {{ user.username }} 👋</h1>
     <p class="page-subtitle">Here's what's happening with your job search.</p>
 
+    <!-- Notifications -->
+    {% if notifications %}
+    <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem;">
+      {% for notif in notifications %}
+      <div style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:var(--radius);padding:0.9rem 1.2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <span style="font-size:0.9rem;">{{ notif.message }}</span>
+        <a href="{% url 'dismiss_notification' notif.pk %}" style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;">Dismiss ✕</a>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Interviews -->
+    {% if interviews %}
+    <div class="card mb-2" style="border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.05);margin-bottom:1.5rem;">
+      <h2 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">📅 Upcoming Interviews</h2>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        {% for iv in interviews %}
+        <div style="background:var(--bg-dark);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+          <div>
+            <strong style="display:block;">{{ iv.application.job.title }}</strong>
+            <span style="color:var(--text-muted);font-size:0.85rem;">📅 {{ iv.scheduled_at|date:"d M Y" }} at {{ iv.scheduled_at|time:"H:i" }}</span>
+            {% if iv.meeting_link %}
+            <span style="display:block;font-size:0.82rem;margin-top:0.2rem;">🔗 <a href="{{ iv.meeting_link }}" target="_blank" style="color:var(--primary-light);">Join Meeting</a></span>
+            {% elif iv.location %}
+            <span style="display:block;font-size:0.82rem;margin-top:0.2rem;">📍 {{ iv.location }}</span>
+            {% endif %}
+          </div>
+          <a href="{% url 'prep_material' iv.application.pk %}" class="btn btn-primary btn-sm">📚 Prep Material</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card">
@@ -36,9 +71,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-card-icon">⭐</div>
-        <div class="stat-card-value">{% with applications|length as total %}{% for a in applications %}{% if a.status == 'shortlisted' %}{% if forloop.counter == 1 %}1{% else %}+{% endif %}{% endif %}{% endfor %}{% endwith %}
-          {{ applications|dictsort:"status"|length }}
-        </div>
+        <div class="stat-card-value">{{ shortlisted_count }}</div>
         <div class="stat-card-label">Shortlisted</div>
       </div>
       <div class="stat-card">

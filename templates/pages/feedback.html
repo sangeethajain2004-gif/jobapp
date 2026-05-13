@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Leave a Review — SmartJobs{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:600px;padding:3rem 0;">
+  <a href="{% url 'home' %}" style="color:var(--text-muted);font-size:0.9rem;">← Back to Home</a>
+  
+  <div class="card mt-3" style="padding:2.5rem 2rem;">
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="font-size:3rem;margin-bottom:1rem;">⭐</div>
+      <h1 style="font-size:1.8rem;font-weight:800;margin-bottom:0.5rem;">Rate Your Experience</h1>
+      <p style="color:var(--text-secondary);font-size:1rem;">
+        Your feedback helps us improve SmartJobs for everyone.
+      </p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group" style="margin-bottom:1.5rem;text-align:center;">
+        <label class="form-label" style="display:block;margin-bottom:1rem;">How would you rate us?</label>
+        <div style="display:flex;justify-content:center;gap:0.5rem;flex-direction:row-reverse;" class="star-rating">
+          <input type="radio" id="star5" name="rating" value="5" required style="display:none;" />
+          <label for="star5" style="font-size:2.5rem;cursor:pointer;color:var(--text-muted);transition:color 0.2s;">★</label>
+          
+          <input type="radio" id="star4" name="rating" value="4" style="display:none;" />
+          <label for="star4" style="font-size:2.5rem;cursor:pointer;color:var(--text-muted);transition:color 0.2s;">★</label>
+          
+          <input type="radio" id="star3" name="rating" value="3" style="display:none;" />
+          <label for="star3" style="font-size:2.5rem;cursor:pointer;color:var(--text-muted);transition:color 0.2s;">★</label>
+          
+          <input type="radio" id="star2" name="rating" value="2" style="display:none;" />
+          <label for="star2" style="font-size:2.5rem;cursor:pointer;color:var(--text-muted);transition:color 0.2s;">★</label>
+          
+          <input type="radio" id="star1" name="rating" value="1" style="display:none;" />
+          <label for="star1" style="font-size:2.5rem;cursor:pointer;color:var(--text-muted);transition:color 0.2s;">★</label>
+        </div>
+      </div>
+      
+      <style>
+        /* CSS to make hovering stars highlight up to the hovered star */
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+          color: #f59e0b !important;
+        }
+      </style>
+
+      <div class="form-group" style="margin-bottom:2rem;">
+        <label class="form-label">Tell us more</label>
+        <textarea name="review" class="form-input" rows="4" required placeholder="What did you like? What can we do better?"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full" style="justify-content:center;font-size:1.1rem;padding:0.8rem;">
+        Submit Review
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

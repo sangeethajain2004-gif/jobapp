@@ -21,6 +21,8 @@
 
     <ul class="nav-links">
       <li><a href="{% url 'job_list' %}">Browse Jobs</a></li>
+      <li><a href="{% url 'about' %}">About</a></li>
+      <li><a href="{% url 'contact' %}">Contact</a></li>
       {% if user.is_authenticated %}
         {% if user.role == 'seeker' %}
           <li><a href="{% url 'seeker_dashboard' %}">Dashboard</a></li>
@@ -61,10 +63,19 @@
       SmartJobs
     </div>
     <p class="footer-copy">© 2025 Smart Job Portal System. Built with Django &amp; ❤️</p>
-    <div style="display:flex;gap:1rem;">
-      <a href="{% url 'job_list' %}" style="color:var(--text-muted);font-size:0.85rem;">Browse Jobs</a>
-      <a href="{% url 'register_seeker' %}" style="color:var(--text-muted);font-size:0.85rem;">For Seekers</a>
-      <a href="{% url 'register_employer' %}" style="color:var(--text-muted);font-size:0.85rem;">For Employers</a>
+    <div style="display:flex;gap:1rem;justify-content:center;">
+      <a href="{% url 'about' %}" style="color:var(--text-muted);font-size:0.85rem;">About</a>
+      <a href="{% url 'contact' %}" style="color:var(--text-muted);font-size:0.85rem;">Contact</a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'submit_feedback' %}" style="color:var(--text-muted);font-size:0.85rem;">Leave a Review</a>
+      {% endif %}
+      
+      <!-- Admin Link -->
+      {% if user.is_staff %}
+      <a href="{% url 'custom_admin_dashboard' %}" style="color:var(--text-muted);font-size:0.85rem;font-weight:700;">Admin Dashboard</a>
+      {% else %}
+      <a href="/admin/" style="color:var(--text-muted);font-size:0.85rem;">Admin Portal</a>
+      {% endif %}
     </div>
   </div>
 </footer>

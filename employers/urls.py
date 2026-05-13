@@ -9,4 +9,5 @@ urlpatterns = [
     path('toggle-job/<int:pk>/', views.toggle_job, name='toggle_job'),
     path('jobs/<int:pk>/applicants/', views.job_applicants, name='job_applicants'),
     path('application/<int:app_id>/status/', views.update_application_status, name='update_application_status'),
+    path('application/<int:app_id>/schedule/', views.schedule_interview, name='schedule_interview'),
 ]

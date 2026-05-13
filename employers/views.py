@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.utils import timezone
 from django import forms
 from .models import EmployerProfile
-from jobs.models import Job, Application
+from jobs.models import Job, Application, Interview, Notification
 from seekers.models import SeekerProfile
 
 
@@ -135,7 +137,6 @@ def job_applicants(request, pk):
 
 @employer_required
 def update_application_status(request, app_id):
-    from jobs.models import Application
     app = get_object_or_404(Application, pk=app_id, job__employer=request.user)
     new_status = request.POST.get('status')
     if new_status in ['applied', 'shortlisted', 'rejected']:
@@ -143,3 +144,75 @@ def update_application_status(request, app_id):
         app.save()
         messages.success(request, f"Application status updated to '{new_status}'.")
     return redirect('job_applicants', pk=app.job.pk)
+
+
+class InterviewForm(forms.ModelForm):
+    scheduled_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'class': 'form-input', 'type': 'datetime-local'}),
+        input_formats=['%Y-%m-%dT%H:%M'],
+        label='Interview Date & Time'
+    )
+    class Meta:
+        model = Interview
+        fields = ['scheduled_at', 'meeting_link', 'location', 'notes']
+        widgets = {
+            'meeting_link': forms.URLInput(attrs={'class': 'form-input', 'placeholder': 'https://meet.google.com/...'}),
+            'location':     forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Office address or leave blank for virtual'}),
+            'notes':        forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Any special instructions for the candidate...'}),
+        }
+
+
+@employer_required
+def schedule_interview(request, app_id):
+    application = get_object_or_404(Application, pk=app_id, job__employer=request.user)
+    interview   = getattr(application, 'interview', None)
+    form        = InterviewForm(request.POST or None, instance=interview)
+
+    if request.method == 'POST' and form.is_valid():
+        iv = form.save(commit=False)
+        iv.application = application
+        iv.save()
+
+        seeker = application.seeker
+        job    = application.job
+        dt_str = iv.scheduled_at.strftime('%d %b %Y at %I:%M %p')
+
+        # ── In-app notification ──
+        Notification.objects.update_or_create(
+            user=seeker,
+            defaults={
+                'message': f"📅 Interview scheduled for '{job.title}' on {dt_str}.",
+                'link': '/seeker/dashboard/',
+                'is_read': False,
+            }
+        )
+
+        # ── Email notification ──
+        email_body = (
+            f"Hello {seeker.username},\n\n"
+            f"Congratulations! {request.user.username} has scheduled an interview with you.\n\n"
+            f"Job:          {job.title}\n"
+            f"Date & Time:  {dt_str} (IST)\n"
+            f"{f'Meeting Link: {iv.meeting_link}' if iv.meeting_link else f'Location: {iv.location}'}\n"
+            f"{f'Notes: {iv.notes}' if iv.notes else ''}\n\n"
+            f"Please be prepared and on time. Best of luck!\n\nSmartJobs Team"
+        )
+        try:
+            send_mail(
+                subject=f"Interview Scheduled: {job.title}",
+                message=email_body,
+                from_email=None,   # uses DEFAULT_FROM_EMAIL from settings
+                recipient_list=[seeker.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass  # Don't crash if email fails
+
+        messages.success(request, f"Interview scheduled and {seeker.username} has been notified!")
+        return redirect('job_applicants', pk=job.pk)
+
+    return render(request, 'employers/schedule_interview.html', {
+        'form': form,
+        'application': application,
+        'existing': interview,
+    })

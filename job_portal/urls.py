@@ -11,4 +11,7 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     path('seeker/', include('seekers.urls')),
     path('employer/', include('employers.urls')),
+    path('about/', job_views.about, name='about'),
+    path('contact/', job_views.contact, name='contact'),
+    path('feedback/', job_views.submit_feedback, name='submit_feedback'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

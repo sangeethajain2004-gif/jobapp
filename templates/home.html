@@ -162,6 +162,42 @@
 </section>
 {% endif %}
 
+<!-- Testimonials -->
+{% if feedbacks %}
+<section class="page-section">
+  <div class="container">
+    <div class="section-header">
+      <h2>User <span class="text-gradient">Reviews</span></h2>
+      <div class="section-divider"></div>
+      <p class="mt-2">See what our community has to say about SmartJobs.</p>
+    </div>
+    <div class="grid-3">
+      {% for fb in feedbacks %}
+      <div class="card" style="padding:1.5rem;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div style="font-size:1.2rem;margin-bottom:0.75rem;color:#f59e0b;">
+            {% for i in "12345" %}
+              {% if forloop.counter <= fb.rating %}★{% else %}<span style="color:var(--text-muted);">★</span>{% endif %}
+            {% endfor %}
+          </div>
+          <p style="color:var(--text-secondary);font-style:italic;margin-bottom:1.5rem;font-size:0.95rem;">"{{ fb.review }}"</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.75rem;">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--primary-light),var(--primary));color:white;display:flex;align-items:center;justify-content:center;font-weight:700;">
+            {{ fb.user.username|first|upper }}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:0.9rem;">{{ fb.user.username }}</div>
+            <div style="color:var(--text-muted);font-size:0.75rem;">{{ fb.user.get_role_display }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- CTA -->
 <section class="page-section" style="background: var(--bg-card); border-top: 1px solid var(--border);">
   <div class="container text-center">

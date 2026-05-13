@@ -77,7 +77,7 @@
               <!-- Actions -->
               <div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;">
                 {% if profile and profile.resume %}
-                  <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-outline btn-sm">📄 Download Resume</a>
+                  <a href="{{ profile.resume.url }}" target="_blank" class="btn btn-outline btn-sm">📄 Resume</a>
                 {% endif %}
                 <form method="POST" action="{% url 'update_application_status' app.pk %}" style="display:flex;gap:0.5rem;align-items:center;">
                   {% csrf_token %}
@@ -88,6 +88,11 @@
                   </select>
                   <button type="submit" class="btn btn-sm btn-primary">Update</button>
                 </form>
+                <a href="{% url 'schedule_interview' app.pk %}" class="btn btn-sm btn-outline" style="white-space:nowrap;">
+                  {% with iv=app.interview %}
+                    {% if iv %}📅 Reschedule ({{ iv.scheduled_at|date:"d M" }}){% else %}📅 Schedule Interview{% endif %}
+                  {% endwith %}
+                </a>
               </div>
             </div>
           </div>

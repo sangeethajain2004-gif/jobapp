@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.mail import send_mail
 from django.db.models import Q
-from .models import Job, Application
+from .models import Job, Application, Feedback
 from .external_jobs import get_external_jobs
 from accounts.models import CustomUser
 
@@ -15,11 +16,16 @@ def home(request):
     total_jobs = Job.objects.filter(is_active=True).count()
     total_seekers = CustomUser.objects.filter(role='seeker').count()
     total_employers = CustomUser.objects.filter(role='employer').count()
+    
+    # Testimonials
+    feedbacks = Feedback.objects.filter(is_approved=True)[:5]
+
     return render(request, 'home.html', {
         'recent_jobs': recent_jobs,
         'total_jobs': total_jobs + 5000,   # Add external count estimate
         'total_seekers': total_seekers,
         'total_employers': total_employers,
+        'feedbacks': feedbacks,
     })
 
 
@@ -92,3 +98,54 @@ def apply_job(request, pk):
     Application.objects.create(job=job, seeker=request.user, cover_note=cover_note)
     messages.success(request, f"Successfully applied for '{job.title}'!")
     return redirect('seeker_dashboard')
+
+
+def about(request):
+    return render(request, 'pages/about.html')
+
+
+def contact(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        email_body = f"Message from {name} ({email}):\n\n{message}"
+        
+        try:
+            send_mail(
+                subject=f"Contact Form: {subject}",
+                message=email_body,
+                from_email=None,
+                recipient_list=[email], # Sending a copy to them, and maybe to admin. For now just standard usage
+                fail_silently=True,
+            )
+            messages.success(request, "Thank you! Your message has been sent successfully.")
+        except Exception:
+            messages.error(request, "There was an error sending your message. Please try again later.")
+        
+        return redirect('contact')
+        
+    return render(request, 'pages/contact.html')
+
+
+@login_required
+def submit_feedback(request):
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        review = request.POST.get('review')
+        
+        if rating and review:
+            Feedback.objects.create(
+                user=request.user,
+                rating=int(rating),
+                review=review,
+                is_approved=True # Auto-approve for demo
+            )
+            messages.success(request, "Thank you for your review! It has been posted to our homepage.")
+            return redirect('home')
+        else:
+            messages.error(request, "Please provide both a rating and a review.")
+            
+    return render(request, 'pages/feedback.html')

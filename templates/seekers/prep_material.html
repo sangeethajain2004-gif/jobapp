@@ -10,7 +10,7 @@
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Navigation</div>
-      <a href="{% url 'seeker_dashboard' %}" class="sidebar-link active"><span class="icon">📊</span> Dashboard</a>
+      <a href="{% url 'seeker_dashboard' %}" class="sidebar-link"><span class="icon">📊</span> Dashboard</a>
       <a href="{% url 'job_list' %}" class="sidebar-link"><span class="icon">🔍</span> Browse Jobs</a>
       <a href="{% url 'seeker_profile' %}" class="sidebar-link"><span class="icon">👤</span> My Profile</a>
     </div>
@@ -19,49 +19,58 @@
 
   <main class="dashboard-main">
     <a href="{% url 'seeker_dashboard' %}" style="color:var(--text-muted);font-size:0.9rem;">← Back to Dashboard</a>
-    
-    <div style="margin-top:1.5rem;display:flex;align-items:center;gap:1rem;">
+
+    <div style="margin-top:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
       <div class="company-avatar" style="width:48px;height:48px;font-size:1.2rem;">{{ job.title|first|upper }}</div>
       <div>
         <h1 class="page-title" style="margin-bottom:0;">Interview Prep: {{ job.title }}</h1>
-        <p class="page-subtitle" style="margin-bottom:0;">🏢 {{ job.employer.username }} &nbsp;•&nbsp; Status: <strong style="color:var(--primary-light);">{{ application.status|title }}</strong></p>
+        <p class="page-subtitle" style="margin-bottom:0;">🏢 {{ job.employer.username }}</p>
       </div>
+      {% if prior %}
+      <div style="margin-left:auto;">
+        <span class="badge {% if prior.percentage >= 71 %}badge-success{% elif prior.percentage >= 41 %}badge-primary{% else %}badge-warning{% endif %}">
+          Last Score: {{ prior.percentage }}%
+        </span>
+      </div>
+      {% endif %}
     </div>
 
     <div class="grid-2 mt-3">
-      <!-- Top Questions -->
+      <!-- Top Interview Questions -->
       <div class="card">
-        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-          <span>💬</span> Top Interview Questions
-        </h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">Based on the skills required: {% for s in job.get_skills_list|slice:":3" %}<strong style="color:var(--text-secondary);">{{ s }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
-        
-        <div style="display:flex;flex-direction:column;gap:1rem;">
+        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;">💬 Top Interview Questions</h2>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:0.5rem;">
+          Scraped live from InterviewBit for:
+          {% for s in job.get_skills_list|slice:":3" %}<strong>{{ s|title }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}
+        </p>
+        <p style="color:var(--text-muted);font-size:0.78rem;margin-bottom:1.25rem;font-style:italic;">
+          💡 Tip: Prepare your verbal answers using the <strong>STAR method</strong> — Situation → Task → Action → Result
+        </p>
+        <ol style="padding-left:1.2rem;display:flex;flex-direction:column;gap:0.6rem;">
           {% for q in questions %}
-          <div style="background:var(--bg-dark);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border);">
-            <strong style="color:var(--text-primary);display:block;margin-bottom:0.5rem;">Q{{ forloop.counter }}: {{ q }}</strong>
-            <p style="color:var(--text-muted);font-size:0.85rem;margin:0;"><em>Tip: Use the STAR method (Situation, Task, Action, Result) to structure your answer.</em></p>
-          </div>
+          <li style="color:var(--text-primary);font-size:0.9rem;line-height:1.6;padding:0.5rem 0;border-bottom:1px solid var(--border);">{{ q }}</li>
+          {% empty %}
+          <li style="color:var(--text-muted);">No questions found. Please try again later.</li>
           {% endfor %}
-        </div>
+        </ol>
       </div>
 
-      <!-- Quick Quiz -->
+      <!-- Scored Quiz -->
       <div class="card">
-        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
-          <span>📝</span> Quick Self-Assessment Quiz
-        </h2>
-        <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1.5rem;">Test your readiness before the interview.</p>
-        
-        <form onsubmit="event.preventDefault(); alert('Great job! Keep practicing these concepts.');">
-          <div style="display:flex;flex-direction:column;gap:1.5rem;">
+        <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;">📝 Self-Assessment Quiz</h2>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:1.25rem;">
+          Answer all questions and get an instant score with feedback.
+        </p>
+        <form method="POST" action="{% url 'submit_assessment' application.pk %}">
+          {% csrf_token %}
+          <div style="display:flex;flex-direction:column;gap:1.25rem;">
             {% for item in quiz %}
             <div style="background:var(--bg-dark);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border);">
-              <p style="font-weight:600;margin-bottom:0.75rem;">{{ forloop.counter }}. {{ item.q }}</p>
-              <div style="display:flex;flex-direction:column;gap:0.5rem;">
+              <p style="font-weight:600;font-size:0.9rem;margin-bottom:0.75rem;">{{ forloop.counter }}. {{ item.q }}</p>
+              <div style="display:flex;flex-direction:column;gap:0.4rem;">
                 {% for opt in item.options %}
-                <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.9rem;cursor:pointer;">
-                  <input type="radio" name="q{{ forloop.parentloop.counter }}" value="{{ opt }}">
+                <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.88rem;cursor:pointer;">
+                  <input type="radio" name="q{{ forloop.parentloop.counter0 }}" value="{{ opt }}" required>
                   <span>{{ opt }}</span>
                 </label>
                 {% endfor %}
@@ -69,8 +78,33 @@
             </div>
             {% endfor %}
           </div>
-          <button type="submit" class="btn btn-primary w-full mt-3" style="justify-content:center;">Submit Quiz</button>
+          <button type="submit" class="btn btn-primary w-full mt-3" style="justify-content:center;">
+            🎯 Submit & See My Score
+          </button>
         </form>
+      </div>
+    </div>
+
+    <!-- Resource Links -->
+    <div class="card mt-3">
+      <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:1rem;">📚 Study Resources by Skill</h2>
+      <div class="grid-3">
+        {% for skill, links in resources.items %}
+        <div style="background:var(--bg-dark);border-radius:var(--radius-sm);padding:1rem;border:1px solid var(--border);">
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;color:var(--primary-light);">{{ skill }}</h3>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            {% for link in links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener"
+               style="display:flex;align-items:center;gap:0.5rem;color:var(--text-secondary);font-size:0.85rem;text-decoration:none;padding:0.4rem 0.6rem;border-radius:6px;transition:background 0.2s;"
+               onmouseover="this.style.background='var(--bg-elevated)'" onmouseout="this.style.background='transparent'">
+              <span>{{ link.icon }}</span>
+              <span>{{ link.site }}</span>
+              <span style="margin-left:auto;font-size:0.7rem;color:var(--text-muted);">↗</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </main>
